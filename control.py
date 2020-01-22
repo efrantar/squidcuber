@@ -21,7 +21,7 @@ def is_clock(move):
 
 # Invert a half-turn
 def inv2(m2):
-    return (m2 // 4) * 4 + ((m + 2) % 4)
+    return (m2 // 4) * 4 + ((m2 + 2) % 4)
 
 
 # All possible corner cutting situations
@@ -65,9 +65,6 @@ def cut(m1, m2, inverted=False):
     return AX_PARTCUT1
 
 
-# SAFETY = 1.25 # noticeably slower + but also a lot more reliable
-SAFETY = 1.
-
 # [][0] for quarter- and [][1] for half-turns
 WAITDEG = [
     [22, 66], # CUT
@@ -84,7 +81,7 @@ WAITDEG = [
 ]
 
 # For half + quarter axial turns
-SPECIAL_AX_WAITDEG = int(5 * SAFETY)
+SPECIAL_AX_WAITDEG = 5
 
 # Determine optimal turning directions for half-turns with respect to corner cutting
 def optim_halfdirs(sol):
@@ -98,7 +95,7 @@ def optim_halfdirs(sol):
             if is_half(m2):
                 options[i].append((m1, inv2(m2)))
             if is_half(m1) and is_half(m2):
-                options[i].append((inv(m1), inv2(m2)))
+                options[i].append((inv2(m1), inv2(m2)))
         else:
             options[i].append(sol[i])
             if is_half(sol[i]):
@@ -152,11 +149,11 @@ class Robot:
 
     def __init__(self):
         self.bricks = [
-            ev3.EV3(protocol='Usb', host=host) for host in Robot.HOSTS
+            ev3.EV3(protocol='Usb', host=host) for host in HOSTS
         ]
 
     def waitdeg(self, m1, m2):
-        return WAITDEG[cut(m1, m2)][int(is_half(m1))] * self.safety
+        return int(WAITDEG[cut(m1, m2)][int(is_half(m1))] * self.safety)
 
     def move(self, m, prev, next):
         motor = FACE_TO_MOTOR[m // 4]
@@ -187,7 +184,7 @@ class Robot:
                 return self.move1((m2, m1), prev, next)
             rotate2(
                 self.bricks[motor1.brick], motor1.ports, motor2.ports, deg1, deg2,
-                SPECIAL_AX_WAITDEG, waitdeg
+                int(SPECIAL_AX_WAITDEG * self.safety), waitdeg
             )
         else:
             # We always want to wait on the move with the worse in-cutting
@@ -201,7 +198,7 @@ class Robot:
         sol = optim_halfdirs(sol)
         self.safety = safety        
 
-        for i in range(len(sol1)):
+        for i in range(len(sol)):
             prev = sol[i - 1] if i > 0 else None
             next = sol[i + 1] if i < len(sol) - 1 else None
             
