@@ -67,17 +67,31 @@ def cut(m1, m2, inverted=False):
 
 # [][0] for quarter- and [][1] for half-turns
 WAITDEG = [
-    [22, 66], # CUT
-    [18, 60], # ANTICUT
-    [24, 76], # AX_CUT1
-    [24, 82], # AX_CUT2
-    [22, 72], # AX_PARTCUT1
-    [22, 76], # AX_PARTCUT2
-    [20, 68], # AX_ANTICUT1
-    [20, 68], # AX_ANTICUT2
-    [26, 78], # AXAX_CUT
-    [22, 76], # AXAX_PARTCUT
-    [24, 70]  # AXAX_ANTICUT
+    [12, 52], # CUT
+    [10, 50], # ANTICUT
+    [20, 54], # AX_CUT1
+    [24, 68], # AX_CUT2
+    [22, 50], # AX_PARTCUT1
+    [20, 56], # AX_PARTCUT2
+    [12, 48], # AX_ANTICUT1
+    [16, 60], # AX_ANTICUT2
+    [24, 68], # AXAX_CUT
+    [26, 68], # AXAX_PARTCUT
+    [18, 64]  # AXAX_ANTICUT
+]
+
+WAITDEG = [
+    [14, 54], # CUT
+    [11, 54], # ANTICUT
+    [27, 72], # AX_CUT1
+    [27, 72], # AX_CUT2
+    [27, 63], # AX_PARTCUT1
+    [27, 63], # AX_PARTCUT2
+    [18, 66], # AX_ANTICUT1 
+    [18, 66], # AX_ANTICUT2
+    [27, 72], # AXAX_CUT
+    [27, 72], # AXAX_PARTCUT
+    [21, 72]  # AXAX_ANTICUT
 ]
 
 # For half + quarter axial turns
@@ -174,9 +188,10 @@ class Robot:
         deg1, deg2 = DEGS[count1], DEGS[count2]
     
         if next is None:
-           waitdeg = max(deg1, deg2) - (27 - 1)
+           waitdeg = max(abs(deg1), abs(deg2)) - (27 - 1)
         else:
             waitdeg = self.waitdeg(m, next)
+        print(waitdeg)
 
         # Half + quarter-turn case
         if (abs(count1) == 2) != (abs(count2) == 2):
