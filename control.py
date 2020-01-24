@@ -188,14 +188,13 @@ class Robot:
         deg1, deg2 = DEGS[count1], DEGS[count2]
     
         if next is None:
-           waitdeg = max(abs(deg1), abs(deg2)) - (27 - 1)
+            waitdeg = max(abs(deg1), abs(deg2)) - (27 - 1)
         else:
             waitdeg = self.waitdeg(m, next)
-        print(waitdeg)
 
         # Half + quarter-turn case
-        if (abs(count1) == 2) != (abs(count2) == 2):
-            if abs(count2) == 2:
+        if (count1 & 1) != (count2 & 1):
+            if (count2 & 1) != 0:
                 return self.move1((m2, m1), prev, next)
             rotate2(
                 self.bricks[motor1.brick], motor1.ports, motor2.ports, deg1, deg2,
@@ -225,8 +224,8 @@ class Robot:
             print(time.time() - tick)            
 
     def solve_pressed(self):
-        return is_pressed(self.bricks[2], 0) # left button
+        return is_pressed(self.bricks[1], 0) # left button
 
     def scramble_pressed(self):
-        return is_pressed(self.bricks[2], 1) # right button
+        return is_pressed(self.bricks[1], 1) # right button
 

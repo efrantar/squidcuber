@@ -8,6 +8,35 @@ N_SPLITS = 2
 MILLIS = 25
 N_WARMUPS = 100
 
+FACEID = {
+    'U': 0, 'D': 1, 'R': 2, 'L': 3, 'F': 4, 'B': 5
+}
+COUNT = {
+    '': 0, '2': 1, "'": 2
+}
+
+def move(s):
+    return 4 * FACEID[s[0]] + COUNT[s[1:]]
+
+def translate(s):
+    sol = []
+    
+    splits = s.split(' ')
+    i = 0
+
+    while i < len(splits):
+        m = splits[i]
+        if '(' in m:
+            m1 = m[1:]
+            m2 = splits[i + 1][:-1]
+            sol.append((move(m1), move(m2)))
+            i += 1
+        else:
+            sol.append(move(m))
+        i += 1
+
+    return sol
+
 # Simple Python interface to the rob-twophase CLI
 class Solver:
 
@@ -32,7 +61,7 @@ class Solver:
         if 'error' in tmp:
             return tmp
         sol = self.proc.stdout.readline().decode()
-        sol = sol[:(sol.index('(') - 1)] # delete appended solution length
+        sol = ' '.join(sol.split(' ')[:-1]) # delete appended solution length
         self.proc.stdout.readline() # clear "Ready!" message 
         return sol
 
@@ -42,23 +71,8 @@ class Solver:
         # Scrambling will never fail
         self.proc.stdout.readline() # facecube
         self.proc.stdout.readline() # time taken
-        scramble = self.proc.stdout.readline().decode()[:-1] # strip '\n'
+        scramble = self.proc.stdout.readline().decode()
+        scramble = ' '.join(scramble.split(' ')[:-1])
         self.proc.stdout.readline()
         return scramble
-
-
-if __name__ == '__main__':
-    import time
-
-    print('Loading solver ...')
-    with Solver() as solver:
-        print('Done.')
-
-        tick = time.time()
-        print(solver.solve('FLBFURLBRBDUURFLULDRDRFRRLUFUBLDBDBDLUBLLFRFURBUDBDFDF'))
-        print(time.time() - tick)
-
-        tick = time.time()
-        print(solver.scramble())
-        print(time.time() - tick)
 
