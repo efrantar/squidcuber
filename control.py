@@ -146,17 +146,17 @@ DEGS = [54, 108, -54, -108] # double inversion from motor perspective + gearing
 
 HOSTS = [
     '00:16:53:7F:36:D9',
-    '00:16:53:40:CE:B6',
-    '00:16:53:4A:BA:BA'
+    '00:16:53:4A:BA:BA',
+    '00:16:53:40:CE:B6'
 ]
 
 FACE_TO_MOTOR = [
     Motor(0, ev3.PORT_A + ev3.PORT_B), # U
     Motor(0, ev3.PORT_C + ev3.PORT_D), # D
-    Motor(1, ev3.PORT_C + ev3.PORT_D), # R
-    Motor(1, ev3.PORT_A + ev3.PORT_B), # L
-    Motor(2, ev3.PORT_C + ev3.PORT_D), # F
-    Motor(2, ev3.PORT_A + ev3.PORT_B)  # D
+    Motor(2, ev3.PORT_A + ev3.PORT_B), # R
+    Motor(2, ev3.PORT_C + ev3.PORT_D), # L
+    Motor(1, ev3.PORT_C + ev3.PORT_D), # F
+    Motor(1, ev3.PORT_A + ev3.PORT_B)  # B
 ]
 
 class Robot:
@@ -224,8 +224,8 @@ class Robot:
             print(time.time() - tick)            
 
     def solve_pressed(self):
-        return is_pressed(self.bricks[1], 0) # left button
+        return is_pressed(self.bricks[2], 0) # left button
 
     def scramble_pressed(self):
-        return is_pressed(self.bricks[1], 1) # right button
+        return is_pressed(self.bricks[2], 1) # right button
 

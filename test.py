@@ -35,8 +35,8 @@ print('Connected.')
 
 tick = time.time()
 
-# robot.execute(convert("R' B2 (R' L) D2 (R L) U (R' L') D (F' B') U B U L' U (R' L) (F' B) L"))
-robot.execute(convert("(F B') (U' D) L U' (F B) U' B' (U' D') F R B D' (R' L') F2 L D2 L U2"))
+robot.execute(convert("R' B2 (R' L) D2 (R L) U (R' L') D (F' B') U B U L' U (R' L) (F' B) L"))
+# robot.execute(convert("(F B') (U' D) L U' (F B) U' B' (U' D') F R B D' (R' L') F2 L D2 L U2"))
 # robot.execute(convert("U2 B' D B (R L') (U D) (F' B') D' R' U' B R' D' (F2 B2) U' (F2 B2) (U' D')"))
 
 # robot.execute(convert("U R' F D' L B' U R' F D' L B' U R' F D' L B'"))

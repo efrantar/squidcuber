@@ -59,6 +59,7 @@ class Solver:
         self.proc.stdin.flush() # command needs to be received instantly
         tmp = self.proc.stdout.readline().decode() # either time taken or an error
         if 'error' in tmp:
+            self.proc.stdout.readline() # also need to clear "Ready!" here
             return tmp
         sol = self.proc.stdout.readline().decode()
         sol = ' '.join(sol.split(' ')[:-1]) # delete appended solution length
