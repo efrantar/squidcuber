@@ -3,4 +3,7 @@ twophase
 twophase.tbl
 bench.cubes
 backup
+data
+scans
+model.pkl
 
