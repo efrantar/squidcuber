@@ -1,3 +1,6 @@
+# Trains a KNN for assigning confidence scores to observed colors. For increased inference speed the model is 
+# persisted in form of a full lookup table for all 16.7 million different BGR values.
+
 import os
 import pickle
 
@@ -7,15 +10,13 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from scan import *
 
-DATA = 'data/'
-
 size, points = pickle.load(open('setup.pkl', 'rb'))
 extractor = ColorExtractor(np.array(points), size)
 
 data = []
-for f in os.listdir(DATA):
+for f in os.listdir('data/'):
     labels = [c for c in f.split('.')[0]]
-    img = cv2.imread(DATA + f)
+    img = cv2.imread('data/' + f)
     data.append((labels, extractor.extract_bgrs(img)))
 print('Data loaded.')
 
@@ -49,11 +50,8 @@ print('Preprocessing done.')
 
 model = KNeighborsClassifier(n_neighbors=int(.1 * X.shape[0]), n_jobs=-1)
 model.fit(X, y)
-print(model.classes_)
 
-N_COLORS = 256 ** 3
-allcols = np.zeros((N_COLORS, 3), dtype=np.uint8)
-
+allcols = np.zeros((256 ** 3, 3), dtype=np.uint8)
 i = 0
 for b in range(256):
     for g in range(256):
@@ -64,6 +62,7 @@ allcols = preprocess(allcols)
 
 print('Generating table ...')
 table = model.predict_proba(allcols) * model.n_neighbors # will always be integer
-table = table.astype(np.uint8)
+table = table.astype(np.uint8) if model.n_neighbors <= 255 else table.astype(np.uint16)
 pickle.dump(table, open('model.pkl', 'wb'))
+print('Done.')
 

@@ -24,6 +24,7 @@ COLOR = (0, 0, 0)
 FILE = 'setup.pkl'
 
 cam = DoubleCam()
+cam.start()
 image = cv2.imread(sys.argv[1]) if len(sys.argv) > 1 else cam.frame()
 image1 = image.copy()
 size, points = pickle.load(open(FILE, 'rb')) if os.path.exists(FILE) else []
@@ -69,6 +70,7 @@ def show_extracted():
 def show_matched():
     if len(points) != 55:
         return
+    cam.stop() # free CPU
 
     extractor = ColorExtractor(np.array(points[:-1]), size)
     tick = time.time()    
@@ -98,6 +100,8 @@ def show_matched():
     for i, ps in enumerate(points):
         for x, y in ps:
             image1[(y - size2):(y + size2), (x - size2):(x + size2), :] = bgr[facecube[i]]
+
+    cam.start() # capture again
 
 
 show = show_squares

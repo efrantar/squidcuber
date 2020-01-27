@@ -31,25 +31,27 @@ with Solver() as solver:
     size, points = pickle.load(open('setup.pkl', 'rb'))
     extractor = ColorExtractor(np.array(points), size)
     cam = DoubleCam()
-    cam.frame() # initialize everything
+    cam.start()
     print('Scanning set up.')
 
     print('Ready.') # we don't want to print this again and again while waiting for button presses
     while True: # polling is the most straight-forward way to check both buttons at once
         time.sleep(.05) # 50ms should be sufficient for a smooth experience
         if robot.scramble_pressed():
+            cam.stop()
             scramble = solver.scramble()
             print(scramble)
             scramble = translate(scramble)
             start = time.time()
             robot.execute(scramble)
             print('Scrambled! %fs' % (time.time() - start))
+            cam.start()
             continue
         elif not robot.solve_pressed():
             continue
         # Now actually start solving
 
-        frame = cam.frame()
+        frame = cam.frame(stop=True)
         # NOTE: We start timing only after we have received a frame from the camera and start any processing.
         # While this might not be 100% conform to the Guiness World Record rules, I am (at least at this point)
         # not interested in optimizing the camera latency as I do not think this should be an integral part
@@ -72,5 +74,6 @@ with Solver() as solver:
             print('Error.')
             save_fail(frame, scans)            
 
+        cam.start()
         print('Ready.')
 

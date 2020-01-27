@@ -3,6 +3,7 @@ import copy
 from heapq import *
 import pickle
 import time
+import threading
 
 import numpy as np
 import cv2
@@ -257,9 +258,38 @@ class DoubleCam:
             c.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             c.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             return c
-        self.ucam = cam(uid)
-        self.dcam = cam(did)
+        self.cams = [cam(uid), cam(did)]
+        self.flocks = [threading.Lock(), threading.Lock()]
+        self.slocks = [threading.Lock(), threading.Lock()]
+        self.frames = [self.cams[0].read()[1], self.cams[1].read()[1]]
+        self.rec = False
 
-    def frame(self):
-        return np.concatenate([self.ucam.read()[1], self.dcam.read()[1]], axis=1)
+    def start(self):
+        if self.rec:
+            return
+        def cap(i):
+            while True:
+                with self.slocks[i]:
+                    if not self.rec:
+                        break
+                    _, frame = self.cams[i].read()
+                with self.flocks[i]:
+                    self.frames[i] = frame
+        self.rec = True
+        # Those threads should be terminated on program shutdown
+        threading.Thread(target=lambda: cap(0), daemon=True).start()
+        threading.Thread(target=lambda: cap(1), daemon=True).start()
+
+    def stop(self):
+        with self.flocks[0], self.flocks[1]: # Makes it easier to grab the `slocks`
+            with self.slocks[0], self.slocks[1]: # ensure that we are not fetching any more frames on return
+                self.rec = False
+
+    # `stop` is used to not waste any processing time with frame decoding while computing a solution
+    def frame(self, stop=False):
+        with self.flocks[0], self.flocks[1]:
+            if stop:
+                with self.slocks[0], self.slocks[1]:
+                    self.rec = False
+            return np.concatenate(self.frames, axis=1)
 
