@@ -1,12 +1,24 @@
-#include <vector>
-#include <string>
+/**
+ * This file implements the actual color matching. Colors are assigned in order of confidence as given by the
+ * precomputed scan-table (from a KNN learned on successful scans) while taking into account all cube constraints.
+ * Properly (and efficiently) implementing full constraint propagation is quite tricky, yet very powerful. Together
+ * with reliable confidence scores this makes for a very robust scanning method that is consistently able to handle
+ * strong reflections and varying lighting.
+ */
+
+#include "match.h"
+
 #include <algorithm>
-#include <random>
-#include <iostream>
-#include <tuple>
 #include <chrono>
 #include <cstring>
+#include <iostream>
 #include <queue>
+#include <string>
+#include <tuple>
+#include <vector>
+
+
+/* Since scanner and solver should be independent programs, we need to redefine several important constants here. */
 
 namespace color {
   const int COUNT = 6;
@@ -71,8 +83,7 @@ namespace cubie {
 
 }
 
-const int N_FACELETS = 54;
-
+// Map a facelet to its position on the corresponding cubie
 const int FACELET_TO_POS[] = {
   0, 0, 0, 0, -1, 0, 0, 0, 0,
   1, 1, 2, 1, -1, 1, 2, 1, 1,
@@ -85,8 +96,9 @@ const int FACELET_TO_POS[] = {
 using colset_t = uint8_t;
 
 
+// Lookup the precomputed confidence values learned by KNN for every possible BGR-color
 const int N_BGRS = 16777216;
-uint16_t scantbl[N_BGRS][color::COUNT];
+uint16_t (*scantbl)[color::COUNT];
 
 template <int n_cubies, int n_oris, const int cubiecols[n_cubies][n_oris]>
 class Options {
@@ -302,16 +314,6 @@ class CubieBuilder {
       aoris = 0;
     }
 
-    /*
-    int* get_perm() {
-      return perm;
-    }
-
-    int* get_oris() {
-      return oris;
-    }
-    */
-
     int get_par() {
       return par;
     }
@@ -412,7 +414,7 @@ class CubieBuilder {
 using CornersBuilder = CubieBuilder<cubie::N_CORNERS, 3, color::CORNERS>;
 using EdgesBuilder = CubieBuilder<cubie::N_EDGES, 2, color::EDGES>;
 
-std::string match_colors(int bgrs[N_FACELETS][3]) {
+std::string match_colors(const int bgrs[N_FACELETS][3]) {
   int facecube[N_FACELETS];
 
   int conf[N_FACELETS][color::COUNT];
@@ -450,7 +452,7 @@ std::string match_colors(int bgrs[N_FACELETS][3]) {
     int col = std::get<2>(ass);
 
     bool succ;
-    if ((f % 9) % 2 != 1) { // is on an edge
+    if ((f % 9) % 2 == 1) { // is on an edge
       memcpy(edges1, edges, sizeof(*edges));
       edges->assign_col(cubie, pos, col);
       if (!(succ = edges->propagate()))
@@ -494,78 +496,85 @@ std::string match_colors(int bgrs[N_FACELETS][3]) {
   return std::string(s, N_FACELETS);
 }
 
-bool init() {
-
+bool init_match() {
+  FILE *f = fopen(TBLFILE.c_str(), "rb");
+  if (f == NULL)
+    return false;
+  scantbl = new uint16_t[N_BGRS][color::COUNT];
+  bool succ = fread(scantbl, sizeof(uint16_t[N_BGRS][color::COUNT]), 1, f) == 1;
+  fclose(f);
+  return succ;
 }
 
 /*
-void print_arr(int arr[], int len) {
-  for (int i = 0; i < len; i++)
-    std::cout << arr[i] << " ";
-  std::cout << std::endl;
-}
-
 int main() {
-  std::random_device device;
-  std::mt19937 gen(device());
-
-  int n_cubies = cubie::N_CORNERS;
-  int n_oris = 3;
-  auto cubiecols = color::CORNERS;
-
-  int perm[n_cubies];
-  for (int i = 0; i < n_cubies; i++)
-    perm[i] = i;
-  std::shuffle(perm, perm + n_cubies, gen);
-
-  int invs = 0;
-  for (int i = 0; i < n_cubies; i++) {
-    for (int j = 0; j < i; j++) {
-      if (perm[j] > perm[i])
-        invs++;
-    }
+  if (!init_match()) {
+    std::cout << "Error loading table." << std::endl;
+    return 0;
   }
-  int par = invs & 1;
 
-  int oris[n_cubies];
-  do {
-    for (int i = 0; i < n_cubies; i++)
-      oris[i] = std::uniform_int_distribution<int>(0, n_oris - 1)(gen);
-  } while ((std::accumulate(oris, oris + n_cubies, 0) % n_oris) != 0);
-
-  std::cout << par << std::endl;
-  print_arr(perm, n_cubies);
-  print_arr(oris, n_cubies);
-
-  std::vector<std::tuple<int, int, int>> assignments;
-  for (int cubie = 0; cubie < n_cubies; cubie++) {
-    for (int pos = 0; pos < n_oris; pos++)
-      assignments.emplace_back(cubie, pos, cubiecols[perm[cubie]][(pos + oris[cubie]) % n_oris]);
-  }
-  std::shuffle(assignments.begin(), assignments.end(), gen);
-
-  auto* builder = new CornersBuilder();
-  builder->init();
-  builder->assign_par(par);
-  auto* backup = new CornersBuilder();
+  int bgrs[][3] = {
+    { 96, 149,  75},
+    {117,  31,  10},
+    {227, 203, 198},
+    { 17, 221, 245},
+    {  0, 114, 214},
+    { 25, 155, 165},
+    {180, 225, 236},
+    { 92,  24,   5},
+    { 20, 159, 174},
+    {169, 147, 149},
+    {139, 184, 130},
+    { 70, 142, 248},
+    {110, 137, 180},
+    { 10, 199, 226},
+    {254, 255, 251},
+    {111, 142, 182},
+    { 88, 115, 165},
+    { 17,  35, 135},
+    {111, 169, 250},
+    {133, 142, 208},
+    { 98, 129, 212},
+    {162, 255, 254},
+    { 80,  44,  22},
+    {204, 212, 228},
+    {104, 168,  99},
+    { 93, 129,  84},
+    {113,  83,  80},
+    {136, 139, 139},
+    {161, 159, 158},
+    {174, 167, 164},
+    { 91,  42,  26},
+    {  4,  10,  71},
+    {134, 140, 100},
+    { 66, 134, 134},
+    {126, 132,  93},
+    {133, 143, 106},
+    { 74, 162, 184},
+    { 87, 112, 204},
+    {120,  79,  63},
+    {113,  88,  85},
+    {152, 159, 162},
+    { 67,  66, 116},
+    { 90,  60,  56},
+    {152, 171, 179},
+    { 38,  40,  98},
+    {160, 193,  97},
+    { 58,  65, 119},
+    { 91, 120, 192},
+    { 52, 113, 232},
+    { 93, 122,  41},
+    { 87, 172, 177},
+    { 91, 218, 218},
+    { 79, 115, 202},
+    {100, 100, 115}
+  };
 
   auto tick = std::chrono::high_resolution_clock::now();
-
-  for (auto& a : assignments) {
-    // std::cout << std::get<0>(a) << " " << std::get<1>(a) << " " << std::get<2>(a) << std::endl;
-    memcpy(backup, builder, sizeof (*builder));
-    builder->assign_col(std::get<0>(a), std::get<1>(a), std::get<2>(a));
-    if (!builder->propagate())
-      std::swap(builder, backup);
-  }
-
+  std::cout << match_colors(bgrs) << std::endl;
   std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
     std::chrono::high_resolution_clock::now() - tick
   ).count() / 1000. << "ms" << std::endl;
-
-  std::cout << builder->get_par() << std::endl;
-  print_arr(builder->get_perm(), n_cubies);
-  print_arr(builder->get_oris(), n_cubies);
 
   return 0;
 }

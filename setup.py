@@ -59,6 +59,7 @@ def show_extracted():
     extractor = ColorExtractor(np.array(points[:-1]), size)
     tick = time.time()
     colors = extractor.extract_bgrs(image)
+    print(colors)
     print(time.time() - tick)
 
     global image1

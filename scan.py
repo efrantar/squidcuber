@@ -252,7 +252,7 @@ class ColorExtractor:
 
 class DoubleCam:
 
-    def __init__(self, uid=0, did=2):
+    def __init__(self, uid=2, did=0):
         def cam(i):
             c = cv2.VideoCapture(i)
             c.set(cv2.CAP_PROP_FRAME_WIDTH, 640)

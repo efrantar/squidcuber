@@ -1,3 +1,7 @@
+/**
+ * Implementation of matching the extracted BGR values to cube colors.
+ */
+
 #ifndef __MATCH__
 #define __MATCH__
 
@@ -5,7 +9,9 @@
 
 const std::string TBLFILE = "scan.tbl";
 
-bool init();
-std::string match_colors(int bgrs[]);
+const int N_FACELETS = 54;
+
+bool init_match();
+std::string match_colors(const int bgrs[N_FACELETS][3]);
 
 #endif

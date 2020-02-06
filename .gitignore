@@ -2,8 +2,10 @@ __pycache__
 twophase
 twophase.tbl
 bench.cubes
-backup
-data
 scans
-model.pkl
+
+scan/.idea/
+scan/build/
+scan/cmake-build-debug/
+scan/data
 
