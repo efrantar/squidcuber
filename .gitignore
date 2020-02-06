@@ -8,4 +8,5 @@ scan/.idea/
 scan/build/
 scan/cmake-build-debug/
 scan/data
+scan/scan.tbl
 
