@@ -40,7 +40,7 @@ tick = time.time()
 # robot.execute(convert("U2 B' D B (R L') (U D) (F' B') D' R' U' B R' D' (F2 B2) U' (F2 B2) (U' D')"))
 
 # robot.execute(convert("U R' F D' L B' U R' F D' L B' U R' F D' L B'"))
-robot.execute(convert("U R F D L B U R F D L B U R F D L B"))
+robot.execute(convert("U R F D L B U R F D L B U R F D L B U R F D L B"))
 # robot.execute(convert("U' (R L) D' (F B) R' (U D) L' (F B) U' (R L) D' (F B) R' (U D) L' (F B)"))
 # robot.execute(convert("U (R' L) D (F B') R (U' D) L (F B') U (R' L) D (F B') R (U' D) L (F' B)"))
 # robot.execute(convert("U (R L) D (F B) R (U D) L (F B) U (R L) D (F B) R (U D) L (F B)"))

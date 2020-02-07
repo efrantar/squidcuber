@@ -53,7 +53,7 @@ class Solver:
         self.proc.terminate()
 
     def __enter__(self):
-        self.connect()
+        return self.connect()
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.disconnect()

@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 
 from scan import *
-from solve import *
 from train import Rect, read_scanrects, extract_cols
 
 
@@ -49,13 +48,13 @@ def show_squares():
     image1 = image.copy()
     for r in rects:
         for x, y, width, height in r:
-            image1[y:(y + height), x:(x + width), :] = COLOR
+            image1[y:(y + height), x:(x + width)] = COLOR
 
 def show_nums():
     global image1
     image1 = image.copy()
     for i, r in enumerate(rects):
-        for x, y, width, height in :
+        for x, y, width, height in r:
             cv2.putText(
                 image1, str(i), 
                 (x + width // 2, y + height // 2), 
@@ -63,16 +62,16 @@ def show_nums():
             )
 
 def show_extracted():
-    colors = extract_cols(image, rects)
+    colors = extract_cols(image, rects[:-1]) # last rect is always empty
 
     global image1
     image1 = image.copy()
     for i, r in enumerate(rects):
         for x, y, width, height in r:
-            image1[y:(y + height), x:(x + width), :] = colors[i, :]
+            image1[y:(y + height), x:(x + width)] = colors[i]
 
 def show_matched():
-    if len(points) != 55:
+    if len(rects) != 55:
         return
 
     tick = time.time()
@@ -81,6 +80,7 @@ def show_matched():
 
     if facecube == '':
         facecube = 'E' * 54
+    print(facecube)
 
     global image1
     image1 = image.copy()
@@ -96,7 +96,7 @@ def show_matched():
     }
     for i, r in enumerate(rects):
         for x, y, width, height in r:
-            image1[y:(y + height), x:(x + width), :] = bgr[facecube[i]]
+            image1[y:(y + height), x:(x + width)] = bgr[facecube[i]]
 
 
 show = show_squares
@@ -150,11 +150,12 @@ while True:
         break
 
 cv2.destroyAllWindows()
+scanner.disconnect()
 
 
 del rects[-1]
 with open(FILE, 'w') as f:
-    for r in rects:
-        line = ' '.join(sum([r.x, r.y, r.width, r.height] for r in rs))
+    for rs in rects:
+        line = ' '.join([str(var) for r in rs for var in r])
         f.write(line + '\n')
 
