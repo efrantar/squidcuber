@@ -40,7 +40,7 @@ def translate(s):
 # Simple Python interface to the rob-twophase CLI
 class Solver:
 
-    def __enter__(self):
+    def connect(self):
         self.proc = Popen(
             ['./twophase', '-t', str(N_THREADS), '-s', str(N_SPLITS), '-m', str(MILLIS), '-w', str(N_WARMUPS), '-c'], 
             stdin=PIPE, stdout=PIPE
@@ -49,8 +49,14 @@ class Solver:
             pass # wait for everything to boot up
         return self
 
-    def __exit__(self, exception_type, exception_value, traceback):
+    def disconnect(self):
         self.proc.terminate()
+
+    def __enter__(self):
+        self.connect()
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.disconnect()
 
     def solve(self, facecube):
         if facecube == '':
