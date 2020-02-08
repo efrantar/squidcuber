@@ -8,7 +8,7 @@ import time
 import numpy as np
 
 from control import *
-from scan import *
+from scan.scan import *
 from solve import *
 
 
@@ -22,7 +22,7 @@ def save_fail(scanner):
 with Solver() as solver:
     print('Solver initialized.')
     
-    with Scanner() as scanner:
+    with Scanner(SCANDIR) as scanner:
         scanner.start()
         print('Scanning set up.')
 

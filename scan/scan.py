@@ -1,11 +1,16 @@
 from subprocess import Popen, PIPE
 
 
+SCANDIR = 'scan'
+
 class Scanner:
 
+    def __init__(self, cwd):
+        self.cwd = cwd
+    
     def connect(self):
         self.proc = Popen(
-            ['./scan'], stdin=PIPE, stdout=PIPE, cwd='scan'
+            ['./scan'], stdin=PIPE, stdout=PIPE, cwd=self.cwd
         )
         while 'Ready!' not in self.proc.stdout.readline().decode():
             pass # wait for everything to boot up
@@ -46,7 +51,7 @@ class Scanner:
 if __name__ == '__main__':
     import time
 
-    with Scanner() as scanner:
+    with Scanner('.') as scanner:
         print('Scanner ready.')
 
         scanner.start()

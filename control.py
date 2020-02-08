@@ -167,7 +167,7 @@ class Robot:
         ]
 
     def waitdeg(self, m1, m2):
-        return int(WAITDEG[cut(m1, m2)][int(is_half(m1))] * self.safety)
+        return WAITDEG[cut(m1, m2)][int(is_half(m1))]
 
     def move(self, m, prev, next):
         motor = FACE_TO_MOTOR[m // 4]
@@ -198,7 +198,7 @@ class Robot:
                 return self.move1((m2, m1), prev, next)
             rotate2(
                 self.bricks[motor1.brick], motor1.ports, motor2.ports, deg1, deg2,
-                int(SPECIAL_AX_WAITDEG * self.safety), waitdeg
+                SPECIAL_AX_WAITDEG, waitdeg
             )
         else:
             # We always want to wait on the move with the worse in-cutting
@@ -210,7 +210,6 @@ class Robot:
         if len(sol) == 0:
             return
         sol = optim_halfdirs(sol)
-        self.safety = safety        
 
         for i in range(len(sol)):
             prev = sol[i - 1] if i > 0 else None
