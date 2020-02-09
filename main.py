@@ -1,10 +1,12 @@
 # Main program controlling the robot; not much is happening here, we just call the appropriate
 # tools implemented in the other files.
 
-import cv2
+from datetime import datetime
 import pickle
 import random
 import time
+
+import cv2
 import numpy as np
 
 from control import *
@@ -12,11 +14,23 @@ from scan.scan import *
 from solve import *
 
 
-def save_succ(scanner, facecube):
-    scanner.save('scans/succ/%s.png' % facecube)
+def save_scan(scanner, facecube):
+    scanner.save('scan/data/%s.png' % facecube)
 
-def save_fail(scanner):
-    scanner.save('scans/fail/%d.png' % random.randint(0, 1000000))
+def save_times(sol, times):
+    f = datetime.now().strftime('%y%m%d%H%M%S')
+    pickle.dump((sol, times), open('solves/%s.pkl' % f , 'wb'))
+
+
+# Select the fastest of the solutions returned by the solver
+def sel_best(sols):
+    sols = [optim_halfdirs(translate(sol)) for sol in sols]
+    times = [expected_time(sol) for sols in sol]
+    best = 0
+    for i in range(1, len(sols)):
+        if times[i] < times[best]:
+            best = i
+    return sols[best]
 
 
 with Solver() as solver:
@@ -29,17 +43,17 @@ with Solver() as solver:
         robot = Robot()
         print('Connected to robot.')
 
-        print('Ready.') # we don't want to print this again and again while waiting for button presses
+        print('Ready!') # we don't want to print this again and again while waiting for button presses
         while True: # polling is the most straight-forward way to check both buttons at once
             time.sleep(.05) # 50ms should be sufficient for a smooth experience
             if robot.scramble_pressed():
                 scanner.stop()
-                scramble = solver.scramble()
-                print(scramble)
-                scramble = translate(scramble)
+                scramble = sel_best(solver.scramble())
                 start = time.time()
-                robot.execute(scramble)
+                print('Executing ...')
+                times = robot.execute(scramble)
                 print('Scrambled! %fs' % (time.time() - start))
+                save_times(scramble, times)
                 scanner.start()
                 continue
             elif not robot.solve_pressed():
@@ -55,19 +69,17 @@ with Solver() as solver:
             print('Scanning ...')
             facecube = scanner.scan()
             print('Solving ...')
-            sol = solver.solve(facecube)
-            print(time.time() - start)
+            sol = sel_best(solver.solve(facecube))
 
-            print(sol)
             if (sol is not None) and ('error' not in sol):
                 print('Executing ...')
-                robot.execute(translate(sol))
+                times = robot.execute(sol)
                 print('Solved! %fs' % (time.time() - start))
-                save_succ(scanner, facecube)
+                save_times(sol, times)
+                save_scan(scanner, facecube)
             else:
-                print('Error.')
-                # save_fail(scanner)            
+                print('Error.')        
 
             scanner.start()
-            print('Ready.')
+            print('Ready!')
 

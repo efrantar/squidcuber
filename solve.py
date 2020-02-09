@@ -7,6 +7,7 @@ N_THREADS = 12
 N_SPLITS = 2
 MILLIS = 25
 N_WARMUPS = 100
+N_SOLS = 5
 
 FACEID = {
     'U': 0, 'D': 1, 'R': 2, 'L': 3, 'F': 4, 'B': 5
@@ -42,7 +43,10 @@ class Solver:
 
     def connect(self):
         self.proc = Popen(
-            ['./twophase', '-t', str(N_THREADS), '-s', str(N_SPLITS), '-m', str(MILLIS), '-w', str(N_WARMUPS), '-c'], 
+            [
+                './twophase', 
+                '-t', str(N_THREADS), '-s', str(N_SPLITS), '-m', str(MILLIS), '-w', str(N_WARMUPS), '-c', '-n', str(N_SOLS)
+            ], 
             stdin=PIPE, stdout=PIPE
         )
         while 'Ready!' not in self.proc.stdout.readline().decode():
@@ -63,23 +67,48 @@ class Solver:
             return None
         self.proc.stdin.write(('solve %s\n' % facecube).encode())
         self.proc.stdin.flush() # command needs to be received instantly
+        
         tmp = self.proc.stdout.readline().decode() # either time taken or an error
         if 'error' in tmp:
             self.proc.stdout.readline() # also need to clear "Ready!" here
-            return tmp
-        sol = self.proc.stdout.readline().decode()
-        sol = ' '.join(sol.split(' ')[:-1]) # delete appended solution length
-        self.proc.stdout.readline() # clear "Ready!" message 
+            return None
+        
+        sols = [] # we return multiple solutions
+        while True:
+            sol = self.proc.stdout.readline().decode()
+            if 'Ready!' in sol:
+                break
+            sol = ' '.join(sol.split(' ')[:-1]) # delete appended solution length
+            sols.append(sol) 
         return sol
 
     def scramble(self):
         self.proc.stdin.write('scramble\n'.encode())
         self.proc.stdin.flush()
+
         # Scrambling will never fail
         self.proc.stdout.readline() # facecube
         self.proc.stdout.readline() # time taken
-        scramble = self.proc.stdout.readline().decode()
-        scramble = ' '.join(scramble.split(' ')[:-1])
-        self.proc.stdout.readline()
-        return scramble
+
+        scrambles = []
+        while True:
+            scramble = self.proc.stdout.readline().decode()
+            if 'Ready!' in scramble:
+                break        
+            scramble = ' '.join(scramble.split(' ')[:-1])
+            scrambles.append(scramble)
+        return scrambles
+
+
+if __name__ == '__main__':
+    from control import *
+    import time
+
+    with Solver() as solver:
+        scrambles = solver.scramble()
+
+        tick = time.time()
+        for scramble in scrambles:
+            print(scramble, expected_time(optim_halfdirs(translate(scramble))))     
+        print(time.time() - tick)
 

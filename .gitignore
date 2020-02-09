@@ -1,12 +1,13 @@
-__pycache__
+__pycache__/
 twophase
 twophase.tbl
 bench.cubes
-scans
+solves/
 
 scan/.idea/
 scan/build/
 scan/cmake-build-debug/
 scan/data
 scan/scan.tbl
+scan/__pycache__
 

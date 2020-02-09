@@ -2,6 +2,7 @@
 
 from cmd import *
 from collections import namedtuple
+import pickle
 import time
 import ev3
 
@@ -80,7 +81,8 @@ WAITDEG = [
     [18, 64]  # AXAX_ANTICUT
 ]
 
-WAITDEG = [
+# Slightly slower but extremely robust
+WAITDEG_SAFE = [
     [14, 54], # CUT
     [11, 54], # ANTICUT
     [27, 72], # AX_CUT1
@@ -96,6 +98,18 @@ WAITDEG = [
 
 # For half + quarter axial turns
 SPECIAL_AX_WAITDEG = 5
+
+# The waitdegs are not directly proportional to the actual execution speed. Thus
+# it is better to do half-turn direction optimization and solution selection
+# based on actual (collected) timing data
+CUTTIMES, ENDTIMES = pickle.load(open('turn.times', 'rb'))
+
+def expected_time(sol):
+    time = 0
+    for i in range(len(sol) - 1):
+        time += CUTTIMES[cut(sol[i], sol[i + 1])][int(is_half(sol[i]))]
+    time += ENDTIMES[int(is_axial(sol[i]))][int(is_half(sol[i]))]
+    return time
 
 # Determine optimal turning directions for half-turns with respect to corner cutting
 def optim_halfdirs(sol):
@@ -124,7 +138,7 @@ def optim_halfdirs(sol):
     for i in range(1, len(sol)):
         for j, op2 in enumerate(options[i]):
             for k, op1 in enumerate(options[i - 1]):
-                tmp = DP[i - 1][k] + WAITDEG[cut(op1, op2)][int(is_half(op1))]
+                tmp = DP[i - 1][k] + CUTTIMES[cut(op1, op2)][int(is_half(op1))]
                 if tmp < DP[i][j]:
                     DP[i][j] = tmp
                     PD[i][j] = k
@@ -166,9 +180,6 @@ class Robot:
             ev3.EV3(protocol='Usb', host=host) for host in HOSTS
         ]
 
-    def waitdeg(self, m1, m2):
-        return WAITDEG[cut(m1, m2)][int(is_half(m1))]
-
     def move(self, m, prev, next):
         motor = FACE_TO_MOTOR[m // 4]
         deg = DEGS[m % 4]
@@ -177,7 +188,7 @@ class Robot:
             # NOTE: Cube can be considered solved once the final turn is < 45 degrees before completion
             waitdeg = abs(deg) - (27 - 1)
         else:
-            waitdeg = self.waitdeg(m, next)
+            waitdeg = WAITDEG[cut(m, next)][int(is_half(m))]
 
         rotate(self.bricks[motor.brick], motor.ports, deg, waitdeg)
 
@@ -190,7 +201,7 @@ class Robot:
         if next is None:
             waitdeg = max(abs(deg1), abs(deg2)) - (27 - 1)
         else:
-            waitdeg = self.waitdeg(m, next)
+            waitdeg = WAITDEG[cut(m, next)][int(is_half(m))]
 
         # Half + quarter-turn case
         if (count1 & 1) != (count2 & 1):
@@ -206,11 +217,11 @@ class Robot:
                 return self.move1((m2, m1), prev, next)
             rotate1(self.bricks[motor1.brick], motor1.ports, motor2.ports, deg1, deg2, waitdeg)
 
-    def execute(self, sol, safety=1.):
+    def execute(self, sol):
         if len(sol) == 0:
             return
-        sol = optim_halfdirs(sol)
 
+        times = []
         for i in range(len(sol)):
             prev = sol[i - 1] if i > 0 else None
             next = sol[i + 1] if i < len(sol) - 1 else None
@@ -220,7 +231,8 @@ class Robot:
                 self.move1(sol[i], prev, next)
             else:
                 self.move(sol[i], prev, next)
-            print(time.time() - tick)            
+            times.append(time.time() - tick)
+        return times # return for data collection purposes 
 
     def solve_pressed(self):
         return is_pressed(self.bricks[2], 0) # left button
