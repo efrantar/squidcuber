@@ -18,6 +18,8 @@ agg_cut = [[[], []] for _ in range(11)]
 agg_end = [[[], []], [[], []]] # [is_axial][is_half]
 
 for sol, times in data:
+    if len(sol) == 0: # solved cube
+        continue
     for i in range(len(sol) - 1): # don't consider last move
         agg_cut[cut(sol[i], sol[i + 1])][int(is_half(sol[i]))].append(times[i])
     agg_end[int(is_axial(sol[-1]))][int(is_half(sol[-1]))].append(times[-1])
@@ -34,6 +36,5 @@ for i in range(2):
         if len(agg_end[i][j]) > 0:
             med_end[i][j] = median(agg_end[i][j])
 
-print(med_cut, med_end)
 pickle.dump((med_cut, med_end), open('turn.times', 'wb'))
 

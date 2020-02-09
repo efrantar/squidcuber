@@ -66,20 +66,25 @@ with Solver() as solver:
             # not interested in optimizing the camera latency as I do not think this should be an integral part
             # of a cube-solving robot.
             start = time.time()
+            
             print('Scanning ...')
             facecube = scanner.scan()
-            print('Solving ...')
-            sols = solver.solve(facecube)
+            
+            if facecube != '':
+                print('Solving ...')
+                sols = solver.solve(facecube)
 
-            if len(sols) > 0:
-                sol = sel_best(sols)
-                print('Executing ...')
-                times = robot.execute(sol)
-                print('Solved! %fs' % (time.time() - start))
-                save_times(sol, times)
-                save_scan(scanner, facecube)
+                if len(sols) > 0:
+                    sol = sel_best(sols)
+                    print('Executing ...')
+                    times = robot.execute(sol)
+                    print('Solved! %fs' % (time.time() - start))
+                    save_times(sol, times)
+                    save_scan(scanner, facecube)
+                else:
+                    print('Error.')        
             else:
-                print('Error.')        
+                print('Error.')
 
             scanner.start()
             print('Ready!')

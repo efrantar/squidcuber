@@ -229,6 +229,18 @@ class Options {
       }
     }
 
+    void is_cubie(int cubie) {
+      int rem1 = 0;
+      for (int i = 0; i < rem; i++) {
+        if (opts[i].cubie == cubie)
+          opts[rem1++] = opts[i];
+      }
+      if (rem1 != rem) {
+        rem = rem1;
+        update();
+      }
+    }
+
     void isnot_cubie(int cubie) {
       int rem1 = 0;
       for (int i = 0; i < rem; i++) {
@@ -362,7 +374,7 @@ class CubieBuilder {
           for (int i = 0; i < n_cubies; i++) {
             if (oris[i] == -1) {
               opts[i].has_ori(lastori);
-              assign_ori(i);
+              // Assign only in next iteration to not accidentally overrule contradictions
               break;
             }
           }
@@ -398,10 +410,8 @@ class CubieBuilder {
           if (((invcnt + invcnt1) & 1) != par)
             std::swap(i1, i2); // flip cubie positions to fix parity
 
-          opts[i1].isnot_cubie(cubie2); // safe because only `cubie1` and `cubie2` may be left at this point
-          opts[i2].isnot_cubie(cubie1);
-          assign_cubie(i1);
-          assign_cubie(i2);
+          opts[i1].is_cubie(cubie1);
+          opts[i2].is_cubie(cubie2);
           change = true;
         }
       }
@@ -414,7 +424,7 @@ class CubieBuilder {
 using CornersBuilder = CubieBuilder<cubie::N_CORNERS, 3, color::CORNERS>;
 using EdgesBuilder = CubieBuilder<cubie::N_EDGES, 2, color::EDGES>;
 
-std::string match_colors(const int bgrs[N_FACELETS][3]) {
+std::string match_colors(const int bgrs[N_FACELETS][3], int n_attempts) {
   int facecube[N_FACELETS];
 
   int conf[N_FACELETS][color::COUNT];
@@ -433,6 +443,8 @@ std::string match_colors(const int bgrs[N_FACELETS][3]) {
       conf[f][imax] = -1; // makes it easy to find the next largest index
     }
   }
+  int attempts[N_FACELETS];
+  std::fill(attempts, attempts + N_FACELETS, n_attempts);
 
   // Pointers to simply swap backups back in instead of having to copy them again
   auto* corners = new CornersBuilder();
@@ -486,6 +498,8 @@ std::string match_colors(const int bgrs[N_FACELETS][3]) {
       int imax = tmp - conf[f];
       heap.emplace(conf[f][imax], f, imax);
       conf[f][imax] = -1;
+      if (--attempts[f] < 0)
+        return ""; // this is mostly to prevent too much constraint forcing on scan errors
     } else
       facecube[f] = col;
   }

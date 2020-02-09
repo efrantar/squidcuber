@@ -40,7 +40,7 @@ class Scanner:
         self.proc.stdin.flush()
         facecube = self.proc.stdout.readline().decode()[:-1] # strip '\n'
         self.proc.stdout.readline()
-        return facecube
+        return facecube if 'Error' not in facecube else ''
 
     def save(self, filename):
         self.proc.stdin.write(('save %s\n' % filename).encode())
