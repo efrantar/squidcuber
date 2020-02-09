@@ -20,6 +20,8 @@ def move(s):
     return 4 * FACEID[s[0]] + COUNT[s[1:]]
 
 def translate(s):
+    if s == '':
+        return []
     sol = []
     
     splits = s.split(' ')
@@ -71,7 +73,7 @@ class Solver:
         tmp = self.proc.stdout.readline().decode() # either time taken or an error
         if 'error' in tmp:
             self.proc.stdout.readline() # also need to clear "Ready!" here
-            return None
+            return []
         
         sols = [] # we return multiple solutions
         while True:
@@ -80,7 +82,7 @@ class Solver:
                 break
             sol = ' '.join(sol.split(' ')[:-1]) # delete appended solution length
             sols.append(sol) 
-        return sol
+        return sols
 
     def scramble(self):
         self.proc.stdin.write('scramble\n'.encode())

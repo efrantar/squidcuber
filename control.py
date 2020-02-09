@@ -105,14 +105,19 @@ SPECIAL_AX_WAITDEG = 5
 CUTTIMES, ENDTIMES = pickle.load(open('turn.times', 'rb'))
 
 def expected_time(sol):
+    if len(sol) == 0:
+        return 0
     time = 0
     for i in range(len(sol) - 1):
         time += CUTTIMES[cut(sol[i], sol[i + 1])][int(is_half(sol[i]))]
-    time += ENDTIMES[int(is_axial(sol[i]))][int(is_half(sol[i]))]
+    time += ENDTIMES[int(is_axial(sol[-1]))][int(is_half(sol[-1]))]
     return time
 
 # Determine optimal turning directions for half-turns with respect to corner cutting
 def optim_halfdirs(sol):
+    if len(sol) == 0:
+        return sol
+
     options = [[] for _ in range(len(sol))]
     for i in range(len(sol)):
         if is_axial(sol[i]):

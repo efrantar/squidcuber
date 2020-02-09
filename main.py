@@ -25,7 +25,7 @@ def save_times(sol, times):
 # Select the fastest of the solutions returned by the solver
 def sel_best(sols):
     sols = [optim_halfdirs(translate(sol)) for sol in sols]
-    times = [expected_time(sol) for sols in sol]
+    times = [expected_time(sol) for sol in sols]
     best = 0
     for i in range(1, len(sols)):
         if times[i] < times[best]:
@@ -69,9 +69,10 @@ with Solver() as solver:
             print('Scanning ...')
             facecube = scanner.scan()
             print('Solving ...')
-            sol = sel_best(solver.solve(facecube))
+            sols = solver.solve(facecube)
 
-            if (sol is not None) and ('error' not in sol):
+            if len(sols) > 0:
+                sol = sel_best(sols)
                 print('Executing ...')
                 times = robot.execute(sol)
                 print('Solved! %fs' % (time.time() - start))
