@@ -4,6 +4,8 @@ This is SquidCuber, the (as of February 2020) fastest Lego-based Rubik's Cube so
 Achieving this (almost unthinkably) low time with the rather slow official Lego motors took incredible amounts of tuning and various general advancements in cube robot optimization (some already introduced during the development of this robot's predecessor, [`mirrcub3r`](https://github.com/efrantar/mirrcub3r)).
 Most likely, this is now the actual limit of what is doable with current Lego hardware. Below GIF shows the best time I have gotten in a single solve, a detailed showcase of SquidCuber can be found here: https://youtu.be/wLzn1w8vgM4.
 
+**TODO: Add GIF.**
+
 I started rewriting [`rob-twophase`](https://github.com/efrantar/rob-twophase) (the solving algorithm powering the machine at hand) some time at the end of last December, mostly to clean up the code but also to speed it up even more and include a few additional features.
 Actual work on this robot only started in the beginning of January when I was messing around with Lego Technic to come up with a more stable (and elegant) construction.
 About three weeks later the model was standing and programming could start.
@@ -13,7 +15,7 @@ Furthermore, I had to completely redesign the color recognition algorithm (as th
 While it is now infinitely more complex (featuring full constraint propagation as well as a learning component), it does not just work much better but is also over 5 times faster.
 Overall, SquidCuber is a big step up over it's predecessor.
 
-## General Information
+## Details
 
 SquidCuber consists of 12 motors joined pairwise (with up-gearing) to form much faster and stronger double-motors.
 Each of the 6 motor pairs is directly connected to one of the centers of the cube (to make that possible Lego bricks have been glued on the center caps, similarly to the modifactions done by most recent official Guinness World Record robots).
