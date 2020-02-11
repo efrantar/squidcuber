@@ -13,7 +13,7 @@ Although SquidCuber of course strongly draws from the knowledge gained by workin
 If any single one of them was missing, the robot would not be able to get the times it does.
 Furthermore, I had to completely redesign the color recognition algorithm (as the extremely strong reflections completely broke all my previous approaches).
 While it is now quite a bit more complex (featuring full constraint propagation as well as a learning component), it does not just work leagues better but is also over 5 times faster.
-Overall, SquidCuber is a big step up over it's predecessor.
+Overall, SquidCuber is a big step up over its predecessor.
 
 ## Details
 
