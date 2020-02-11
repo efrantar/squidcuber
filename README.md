@@ -2,9 +2,9 @@
 
 This is SquidCuber, the (as of February 2020) fastest Lego-based Rubik's Cube solver in the world with an average time of about 1 second flat.
 Achieving this (almost unthinkably) low time with the rather slow official Lego motors took incredible amounts of tuning and various general advancements in cube robot optimization (some already introduced during the development of this robot's predecessor, [`mirrcub3r`](https://github.com/efrantar/mirrcub3r)).
-Most likely, this is now the actual limit of what is doable with current Lego hardware. Below GIF shows the best time I have gotten in a single solve, a detailed showcase of SquidCuber can be found here: https://youtu.be/wLzn1w8vgM4.
+Most likely, this is now the actual limit of what is doable with current Lego hardware. A detailed showcase of SquidCuber can found by clicking the image below:
 
-**TODO: Add GIF.**
+[![SquidCuber Video](https://img.youtube.com/vi/wLzn1w8vgM4/0.jpg)](https://www.youtube.com/watch?v=wLzn1w8vgM4)
 
 I started rewriting [`rob-twophase`](https://github.com/efrantar/rob-twophase) (the solving algorithm powering the machine at hand) some time at the end of last December, mostly to clean up the code but also to speed it up even more and include a few additional features.
 Actual work on this robot only started in the beginning of January when I was messing around with Lego Technic to come up with a more stable (and elegant) construction.
